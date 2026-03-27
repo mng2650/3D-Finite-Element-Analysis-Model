@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Educational FEA</title>
+
+<style>
+
+body {
+    margin:0;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#111;
+    overflow:hidden;
+}
+
+/* UI Panel */
+#ui {
+ position:absolute;
+ top:10px;
+ left:10px;
+ background:#222;
+ color:white;
+ padding:15px;
+ border-radius:8px;
+ font-family:Arial;
+}
+
+/* Footer */
+footer{
+ position:absolute;
+ bottom:10px;
+ width:100%;
+ text-align:center;
+ color:#aaa;
+ font-family:Arial;
+ font-size:12px;
+}
+
+button {
+ padding:6px 12px;
+ margin-top:8px;
+ background:#3498db;
+ border:none;
+ color:white;
+ cursor:pointer;
+}
+
+button:hover { background:#2980b9; }
+
+input { width:120px; }
+
+</style>
+
+</head>
+
+<body>
+
+<div id="ui">
+<h3>3D Plate Deformation</h3>
+Young's Modulus<br>
+<input type="number" id="E" value="210000000000"><br>
+Poisson Ratio<br>
+<input type="number" step="0.01" id="nu" value="0.3"><br>
+<button onclick="runSimulation()">Run Simulation</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+
+let scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111111);
+
+let camera = new THREE.PerspectiveCamera(
+60,
+window.innerWidth/window.innerHeight,
+0.1,
+1000
+);
+
+camera.position.set(2,2,3);
+camera.lookAt(0,0,0);
+
+let renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+document.body.appendChild(renderer.domElement);
+
+window.addEventListener("resize", () => {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+});
+
+
+// Lights
+let light = new THREE.DirectionalLight(0xffffff,1);
+light.position.set(5,5,5);
+scene.add(light);
+
+scene.add(new THREE.AmbientLight(0x404040));
+
+
+// Geometry
+let geometry = new THREE.BoxGeometry(1,1,1,20,20,20);
+
+let material = new THREE.MeshStandardMaterial({
+    color:0x3498db,
+    metalness:0.2,
+    roughness:0.8
+});
+
+let mesh = new THREE.Mesh(geometry, material);
+scene.add(mesh);
+
+
+// Animation
+function animate(){
+    requestAnimationFrame(animate);
+    mesh.rotation.y += 0.005;
+    renderer.render(scene, camera);
+}
+animate();
+
+
+function runSimulation(){
+
+    let E = parseFloat(document.getElementById("E").value);
+    let nu = parseFloat(document.getElementById("nu").value);
+
+    let stiffnessFactor = 1e11 / E;
+
+    let pos = mesh.geometry.attributes.position;
+
+    for(let i=0;i<pos.count;i++){
+
+        let x = pos.getX(i);
+        let y = pos.getY(i);
+        let z = pos.getZ(i);
+
+        let displacement = stiffnessFactor * 0.4 * (x + 0.5);
+
+        pos.setX(i, x + displacement);
+        pos.setY(i, y - nu * displacement * 0.2);
+    }
+
+    pos.needsUpdate = true;
+    mesh.geometry.computeVertexNormals();
+}
+
+</script>
+
+<footer>
+<p>© 2026 Michael Nsengiyumva | All Rights Reserved</p>
+</footer>
+
+</body>
+</html>
