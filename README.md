@@ -59,9 +59,4 @@ This is an **educational visualization tool**, not a full FEA solver.
 
 ---
 
-## 📄 License
-
-This project is licensed under the **MIT License**.
-
----
 
